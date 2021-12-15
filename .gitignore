@@ -2,3 +2,4 @@
 *.parquet
 *.cfg
 /scratchbooks/*
+*.ipynb_checkpoints
