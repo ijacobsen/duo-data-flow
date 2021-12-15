@@ -12,17 +12,6 @@ The final data file, "language-codes-full_json.json", contains the list ISO lang
 
 This data pipeline downloads each of the three datasets mentioned above from S3, loads the data into separate Spark dataframes, cleans the data, reorganizes the data into a data model suited to aid in the analysis, writes the data to parquet files on S3 that can easily be loaded into Redshift for the analysts to run queries on.
 
-Some questions that Duolingo researchers may ask are:
-
-What are the most common language pairs?
-
-Which language pair has the most activity?
-
-Are certain language pairs correlated with time-of-day?
-
-Which language pair has the best retention?
-
-Which language UI has the highest word retention across all learning languages?
 
 ## Data Modeling
 
@@ -31,3 +20,14 @@ A star schema was used, as pictured below:
 ![alt text](/imgs/schema_diagram.png "Star Schema")
 
 
+#### Some questions that Duolingo researchers may ask are:
+
+*What are the most common language pairs?*
+
+*Which language pair has the most activity?*
+
+*Are certain language pairs correlated with time-of-day?*
+
+*Which language pair has the best retention?*
+
+*Which language UI has the highest word retention across all learning languages?*
