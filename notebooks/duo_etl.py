@@ -17,20 +17,26 @@ from functools import reduce
 from datetime import datetime
 
 # create spark session
-def create_spark_session():
+def create_spark_session(mode='aws'):
     '''
     creates a spark session
     '''
-    spark = SparkSession \
-        .builder \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
-        .config('spark.sql.execution.arrow.pyspark.enabled', True) \
-        .config('spark.sql.session.timeZone', 'UTC') \
-        .config('spark.driver.memory','4G') \
-        .config('spark.ui.showConsoleProgress', True) \
-        .config('spark.sql.repl.eagerEval.enabled', True) \
-        .getOrCreate()
-    return spark
+    
+    if mode == 'local':
+        spark=SparkSession.builder.appName('local').getOrCreate()
+        return spark
+    
+    else:
+        spark = SparkSession \
+            .builder \
+            .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
+            .config('spark.sql.execution.arrow.pyspark.enabled', True) \
+            .config('spark.sql.session.timeZone', 'UTC') \
+            .config('spark.driver.memory','4G') \
+            .config('spark.ui.showConsoleProgress', True) \
+            .config('spark.sql.repl.eagerEval.enabled', True) \
+            .getOrCreate()
+        return spark
 
 # ==============================================================================
 # ==============================================================================
@@ -44,14 +50,14 @@ def create_spark_session():
 # ==============================================================================
 
 # read learning traces
-def read_learning_traces(spark, s3_path, filename):
-    df = spark.read.option("header","true").csv(os.path.join(s3_path, filename))
-    df = df.limit(2000000) # data too big for jupyter
+def read_learning_traces(spark, path, filename):
+    df = spark.read.option("header","true").csv(os.path.join(path, filename))
+    #df = df.limit(2000000) # data too big for jupyter
     return df
 
 # read language reference table
-def read_lang_ref(spark, s3_path, filename):
-    df = spark.read.json(os.path.join(s3_path, filename))
+def read_lang_ref(spark, path, filename):
+    df = spark.read.json(os.path.join(path, filename))
     return df
 
 # read lexeme table
@@ -64,6 +70,33 @@ def read_lex_ref(spark, s3_bucket, filename):
     # make data ingestible... pyspark not able to infer schema as-is
     lex_list = []
     for line in line_stream(s3_object.get()['Body']):
+        all_split = line.split()
+        lex_list.append([all_split[0], all_split[1], ' '.join(all_split[2:])])
+
+    # load into dataframe with a defined schema
+    from pyspark.sql.types import ArrayType, StructField, StructType, StringType
+    schema = StructType([
+        StructField('code', StringType(), True),
+        StructField('type', StringType(), True),
+        StructField('description', StringType(), True)])
+    lex_df = spark.createDataFrame(lex_list, schema)
+
+    # filter word types... we only want parts of speech in dimension table
+    lex_df = lex_df.filter(lex_df.type == 'POS').select(['code', 'description'])
+    lex_df = lex_df.withColumnRenamed('description', 'part_of_speech')
+    
+    return lex_df
+
+# read lexeme table
+def read_lex_ref_local(spark, path, filename):
+
+    # make data ingestible... pyspark not able to infer schema as-is
+    with open(path+filename) as f:
+        lines = f.readlines()
+        f.close()
+     
+    lex_list = []
+    for line in lines:
         all_split = line.split()
         lex_list.append([all_split[0], all_split[1], ' '.join(all_split[2:])])
 
