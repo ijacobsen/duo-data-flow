@@ -3,3 +3,4 @@
 *.cfg
 /scratchbooks/*
 *.ipynb_checkpoints
+*.pyc
