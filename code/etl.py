@@ -2,6 +2,8 @@ import duo_lib
 import os
 import configparser
 
+#if __name__ == "__main__":
+
 # create spark session
 spark = duo_lib.create_spark_session(mode='local')
 path = './data_files/'
