@@ -4,7 +4,7 @@ import configparser
 
 # create spark session
 spark = duo_lib.create_spark_session(mode='local')
-path = '../data_files/'
+path = './data_files/'
 
 # read language reference table into df
 filename = 'language-codes-full_json.json'
