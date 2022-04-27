@@ -1,6 +1,12 @@
+# base image
 FROM python:3.7
 #FROM continuumio/miniconda3
-#FROM python:3.8-slim
+#FROM python:3.9-slim
+
+# need java installed to run pyspark
+COPY --from=openjdk:8-jre-slim /usr/local/openjdk-8 /usr/local/openjdk-8
+ENV JAVA_HOME /usr/local/openjdk-8
+RUN update-alternatives --install /usr/bin/java java /usr/local/openjdk-8/bin/java 1
 
 
 # Keeps Python from generating .pyc files in the container
